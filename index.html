@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini x Drastic - Quiz Generator</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png" />
+    <link rel="manifest" href="/assets/site.webmanifest" />
+    <!-- Marked.js for Markdown rendering (if needed) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js for code block styling (if needed) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/nord.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: #1e1e1e; }
+      ::-webkit-scrollbar-thumb { background: #6200ea49; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #7e3ff2; }
+
+      /* Global Styles */
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      a { color: #6200ea; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .hidden { display: none !important; }
+      .panel { padding: 80px 16px 16px; max-width: 800px; margin: 0 auto; }
+      
+      /* Header */
+      header {
+        background-color: rgba(250, 242, 242, 0.9);
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        width: 98%;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+      }
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      .logo figure {
+        width: 60px;
+        margin: 0;
+        padding: 0;
+      }
+      .logo img {
+        width: 100%;
+        height: 100%;
+      }
+      .logo span { color: #6200ea; font-family: 'Courier New', Courier, monospace; }
+      .header-buttons {
+        display: flex;
+        gap: 12px;
+      }
+      .header-buttons button {
+        background-color: rgba(76, 63, 63, 0.15);
+        color: #6200ea;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .header-buttons button:hover,
+      .header-buttons button:active {
+        background-color: #6200ea;
+        color: #fff;
+      }
+
+      /* Form & Quiz Styles */
+      form label { display: block; margin: 8px 0 4px; font-weight: bold; }
+      form input, form select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+      }
+      form button {
+        background-color: #6200ea;
+        color: #fff;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 1rem;
+      }
+      form button:hover { background-color: #7e3ff2; }
+      .quiz-question { margin-bottom: 20px; padding: 12px; border: 1px solid #333; border-radius: 8px; background-color: #1e1e1e; }
+      .quiz-question p { margin-bottom: 8px; font-weight: bold; }
+      .quiz-question label { display: block; margin-bottom: 4px; }
+      
+      /* Modal Styling */
+      .modal {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+      }
+      .modal-content {
+        background-color: #1e1e1e;
+        padding: 24px;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+        color: #e0e0e0;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      }
+      .modal-content h2 { margin-top: 0; margin-bottom: 16px; }
+      .modal-content input[type='text'] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 16px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+      }
+      .modal-buttons { text-align: right; }
+      .modal-buttons button {
+        background-color: #6200ea;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: background-color 0.3s;
+      }
+      .modal-buttons button:hover { background-color: #7e3ff2; }
+
+      /* Footer */
+      footer {
+        background-color: transparent;
+        padding: 8px;
+        text-align: center;
+        font-size: 0.8em;
+        color: #888;
+      }
+
+      /* Responsive Adjustments */
+      @media (max-width: 600px) {
+        header { padding: 12px; width: 90%; }
+        .logo { font-size: 20px;}
+        .logo figure{width:40px}
+        .header-buttons { gap: 8px; }
+        .panel { padding: 60px 8px 8px; }
+        form input, form select, form button { font-size: 0.9em; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <figure><img src="/assets/ask-pce.png" alt="Logo"></figure>
+      </div>
+      <div class="header-buttons">
+        <button id="settings-btn" title="Settings">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z"
+              stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19.4 15C19.731 14.333 20 13.667 20 13C20 12.333 19.731 11.667 19.4 11M4.6 11C4.269 11.667 4 12.333 4 13C4 13.667 4.269 14.333 4.6 15M15 4.6C14.333 4.269 13.667 4 13 4C12.333 4 11.667 4.269 11 4.6M11 19.4C11.667 19.731 12.333 20 13 20C13.667 20 14.333 19.731 15 19.4M19.4 8.6C19.731 9.267 20 9.933 20 10.6C20 11.267 19.731 11.933 19.4 12.6M4.6 12.6C4.269 11.933 4 11.267 4 10.6C4 9.933 4.269 9.267 4.6 8.6M8.6 4.6C9.267 4.269 9.933 4 10.6 4C11.267 4 11.933 4.269 12.6 4.6M12.6 19.4C11.933 19.731 11.267 20 10.6 20C9.933 20 9.267 19.731 8.6 19.4"
+              stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Panels -->
+    <main>
+      <!-- Panel 1: Landing Page -->
+      <div id="landing-page" class="panel">
+        <h1>Welcome to the Quiz Generator</h1>
+        <p>Generate a customized quiz by selecting your subject, topics, and other options.</p>
+        <button id="start-quiz-btn">Start Quiz</button>
+        <br/><br/>
+        <button id="setup-key-btn">Set Up API Key</button>
+      </div>
+
+      <!-- Panel 2: Quiz Settings / Topic Selection -->
+      <div id="selection-page" class="panel hidden">
+        <h2>Quiz Settings</h2>
+        <form id="quiz-settings-form">
+          <label for="subject-input">Subject:</label>
+          <input type="text" id="subject-input" placeholder="Enter Subject" required />
+
+          <label for="topics-input">Topics (comma separated):</label>
+          <input type="text" id="topics-input" placeholder="Enter Topics" required />
+
+          <label for="difficulty-select">Difficulty (optional):</label>
+          <select id="difficulty-select">
+            <option value="">Select Difficulty</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <label for="num-questions">Number of Questions (optional):</label>
+          <input type="number" id="num-questions" placeholder="Number of Questions" min="1" />
+
+          <label for="time-duration">Time Duration (minutes, optional):</label>
+          <input type="number" id="time-duration" placeholder="Time Duration" min="1" />
+
+          <button type="submit" id="generate-quiz-btn">Generate Quiz</button>
+        </form>
+      </div>
+
+      <!-- Panel 3: Quiz Window -->
+      <div id="quiz-page" class="panel hidden">
+        <h2>Quiz</h2>
+        <div id="quiz-container"></div>
+        <button id="submit-quiz-btn">Submit Quiz</button>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a> © 
+        <span id="current-year"></span>
+      </p>
+    </footer>
+
+    <!-- Settings Modal (for API Key) -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content">
+        <h2>API Key Settings</h2>
+        <input type="text" id="api-key-input" placeholder="Enter your Gemini API Key" />
+        <div class="modal-buttons">
+          <button id="cancel-settings">Cancel</button>
+          <button id="save-settings">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="result-modal" class="modal">
+      <div class="modal-content">
+        <h2>Quiz Results</h2>
+        <p id="result-text"></p>
+        <button id="close-result-btn">Close</button>
+      </div>
+    </div>
+
+    <script>
+      // ---------- Utility Functions ----------
+      function showPanel(panelId) {
+        document.querySelectorAll('.panel').forEach(panel => panel.classList.add('hidden'));
+        document.getElementById(panelId).classList.remove('hidden');
+      }
+      function updateFooterYear() {
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+      }
+      updateFooterYear();
+
+      // ---------- Panel Navigation ----------
+      document.getElementById('start-quiz-btn').addEventListener('click', () => {
+        if (!localStorage.getItem('geminiApiKey')) {
+          alert("API key is not set. Please set your API key.");
+          return;
+        }
+        showPanel('selection-page');
+      });
+      document.getElementById('setup-key-btn').addEventListener('click', () => {
+        document.getElementById('api-key-input').value = localStorage.getItem('geminiApiKey') || '';
+        document.getElementById('settings-modal').style.display = 'flex';
+      });
+
+      // ---------- Quiz Settings Form Submission ----------
+      document.getElementById('quiz-settings-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const subject = document.getElementById('subject-input').value.trim();
+        const topics = document.getElementById('topics-input').value.trim();
+        const difficulty = document.getElementById('difficulty-select').value;
+        const numQuestions = document.getElementById('num-questions').value;
+        const timeDuration = document.getElementById('time-duration').value;
+        
+        // Build the prompt instructing the AI to generate a quiz in JSON format
+        let prompt = "Generate a quiz in JSON format with the following structure:\n";
+        prompt += "{\n  \"topics\": [array of topics],\n  \"subject\": \"subject\",\n  \"questions\": [\n    {\n      \"question\": \"...\",\n      \"options\": [\"...\", \"...\", \"...\", \"...\"],\n      \"answer\": index of the correct option (0-based)\n    },\n    ...\n  ]\n}\n";
+        prompt += "Ensure that the questions cover key concepts for the subject '" + subject + "' and the topics [" + topics + "].";
+        if (difficulty) { prompt += " Set the difficulty to '" + difficulty + "'."; }
+        if (numQuestions) { prompt += " Generate " + numQuestions + " questions."; }
+        if (timeDuration) { prompt += " The quiz should be designed to be completed in " + timeDuration + " minutes."; }
+        prompt += " Provide only the JSON object in your response.";
+
+        callGeminiAPI(prompt);
+      });
+
+      let currentQuiz = null;
+      
+      // ---------- Gemini API Call ----------
+      function callGeminiAPI(prompt) {
+        const key = localStorage.getItem('geminiApiKey');
+        if (!key) {
+          alert('API key not set. Please set your Gemini API key.');
+          return;
+        }
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data?.candidates?.length > 0) {
+            const answer = data.candidates[0]?.content?.parts[0]?.text || '';
+            try {
+              // Attempt to extract JSON from the response string
+              const jsonStart = answer.indexOf('{');
+              const jsonEnd = answer.lastIndexOf('}');
+              if (jsonStart === -1 || jsonEnd === -1) {
+                throw new Error("No valid JSON object found in the response.");
+              }
+              const jsonString = answer.substring(jsonStart, jsonEnd + 1).trim();
+              currentQuiz = JSON.parse(jsonString);
+              renderQuiz();
+              showPanel('quiz-page');
+            } catch (e) {
+              alert("Error parsing quiz JSON. Please try again. " + e.message);
+            }
+          } else {
+            alert("No quiz generated. Please try again.");
+          }
+        })
+        .catch((error) => {
+          alert("Something went wrong: " + error.message);
+        });
+      }
+
+      // ---------- Render Quiz ----------
+      function renderQuiz() {
+        const quizContainer = document.getElementById('quiz-container');
+        quizContainer.innerHTML = "";
+        if (!currentQuiz || !currentQuiz.questions) {
+          quizContainer.innerHTML = "<p>No quiz available.</p>";
+          return;
+        }
+        currentQuiz.questions.forEach((q, index) => {
+          const qDiv = document.createElement('div');
+          qDiv.className = "quiz-question";
+          const questionText = document.createElement('p');
+          questionText.textContent = (index + 1) + ". " + q.question;
+          qDiv.appendChild(questionText);
+          // Create options as radio buttons
+          q.options.forEach((option, i) => {
+            const optionLabel = document.createElement('label');
+            optionLabel.style.display = "block";
+            const radioInput = document.createElement('input');
+            radioInput.type = "radio";
+            radioInput.name = "question-" + index;
+            radioInput.value = i;
+            optionLabel.appendChild(radioInput);
+            optionLabel.appendChild(document.createTextNode(" " + option));
+            qDiv.appendChild(optionLabel);
+          });
+          quizContainer.appendChild(qDiv);
+        });
+      }
+
+      // ---------- Quiz Submission & Evaluation ----------
+      document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+        if (!currentQuiz || !currentQuiz.questions) {
+          alert("No quiz available to submit.");
+          return;
+        }
+        let score = 0;
+        let total = currentQuiz.questions.length;
+        currentQuiz.questions.forEach((q, index) => {
+          const selected = document.querySelector('input[name="question-' + index + '"]:checked');
+          if (selected && parseInt(selected.value) === q.answer) { score++; }
+        });
+        // Instead of an alert, show results in the results modal
+        document.getElementById('result-text').textContent = `Your Score: ${score} out of ${total}`;
+        document.getElementById('result-modal').style.display = 'flex';
+      });
+
+      document.getElementById('close-result-btn').addEventListener('click', () => {
+        document.getElementById('result-modal').style.display = 'none';
+      });
+
+      // ---------- Settings Modal Functionality ----------
+      document.getElementById('settings-btn').addEventListener('click', () => {
+        document.getElementById('api-key-input').value = localStorage.getItem('geminiApiKey') || '';
+        document.getElementById('settings-modal').style.display = 'flex';
+      });
+      document.getElementById('cancel-settings').addEventListener('click', () => {
+        document.getElementById('settings-modal').style.display = 'none';
+      });
+      document.getElementById('save-settings').addEventListener('click', () => {
+        const key = document.getElementById('api-key-input').value.trim();
+        if (key) {
+          localStorage.setItem('geminiApiKey', key);
+          document.getElementById('settings-modal').style.display = 'none';
+        } else {
+          alert('Please enter a valid API key.');
+        }
+      });
+
+      // ---------- Before Unload Event ----------
+      window.addEventListener("beforeunload", function (e) {
+        // Show a custom confirmation dialog.
+        // Note: Some browsers may not display custom messages.
+        const confirmationMessage = "API keys will be deleted. Are you sure you want to leave?";
+        if (confirm(confirmationMessage)) {
+          localStorage.clear();
+        } else {
+          e.preventDefault();
+          e.returnValue = "";
+        }
+      });
+    </script>
+  </body>
+</html>
