@@ -42,6 +42,7 @@
       .logo {
         display: flex;
         align-items: center;
+        cursor: pointer;
       }
       .logo img {
         width: 80px;
@@ -54,7 +55,7 @@
         font-weight: bold;
       }
       .header-buttons button {
-        /* Use secondary button style */
+        /* Secondary button style */
         padding: 8px 12px;
         border: 1px solid #6272a4;
         background: transparent;
@@ -77,6 +78,7 @@
         border: none;
         cursor: pointer;
         transition: background 0.3s ease, box-shadow 0.3s ease;
+        margin: 5px 0;
       }
       .btn-primary {
         background: #50fa7b;
@@ -99,6 +101,7 @@
       form label {
         margin-bottom: 5px;
         font-weight: bold;
+        display: block;
       }
       form input,
       form select,
@@ -112,11 +115,17 @@
         font-size: 1rem;
         outline: none;
         transition: border-color 0.3s ease;
+        width: 100%;
       }
       form input:focus,
       form select:focus,
       form textarea:focus {
         border-bottom-color: #50fa7b;
+      }
+      form select {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
       }
       /* Panels */
       main {
@@ -137,6 +146,18 @@
       h2 {
         margin-bottom: 15px;
         color: #ff79c6;
+      }
+      /* Trending Topics */
+      #trending-topics {
+        margin: 15px 0;
+      }
+      #trending-topics span {
+        margin-right: 10px;
+        font-weight: bold;
+      }
+      #trending-topics .trending-btn {
+        margin-right: 10px;
+        margin-bottom: 5px;
       }
       /* Quiz Styles */
       .quiz-question {
@@ -292,8 +313,9 @@
 
     <!-- Header -->
     <header>
-      <div class="logo">
+      <div class="logo" id="logo">
         <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>Study Helper</span>
       </div>
       <div class="header-buttons">
         <button id="setup-key-btn" title="Settings" class="btn btn-secondary">
@@ -306,7 +328,7 @@
     <main>
       <!-- Landing Panel -->
       <div id="landing-page" class="panel">
-        <h1>Welcome to Study Helper</h1>
+        <h1>Welcome to Exam Preparation Quiz generator</h1>
         <p>
           Use this application to generate customized quizzes or detailed study
           notes.
@@ -366,6 +388,43 @@
             placeholder="Enter Topic"
             required
           />
+
+          <!-- Trending Topics -->
+          <div id="trending-topics">
+            <span>Trending Topics:</span>
+            <button
+              type="button"
+              class="btn btn-secondary trending-btn"
+              data-subject="Interview Prep"
+              data-topic="Interview Questions"
+            >
+              Interview Questions
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary trending-btn"
+              data-subject="Engineering Syllabus"
+              data-topic="OS"
+            >
+              Engineering - OS
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary trending-btn"
+              data-subject="Engineering Syllabus"
+              data-topic="DBMS"
+            >
+              Engineering - DBMS
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary trending-btn"
+              data-subject="Engineering Syllabus"
+              data-topic="Python"
+            >
+              Engineering - Python
+            </button>
+          </div>
 
           <label for="question-type">Type of Questions:</label>
           <select id="question-type" required>
@@ -452,16 +511,11 @@
       </div>
     </div>
 
-    <!-- Results Modal (Deprecated: now using dedicated Results Panel) -->
-    <div id="result-modal" class="modal">
-      <div class="modal-content">
-        <h2>Quiz Results</h2>
-        <p id="result-text"></p>
-        <button id="close-result-btn" class="btn btn-primary">Close</button>
-      </div>
-    </div>
-
     <script>
+      // Global variables to hold quiz data and type
+      let currentQuiz = null;
+      let currentQuizType = '';
+
       // Utility Functions
       function showPanel(panelId) {
         document.querySelectorAll('.panel').forEach((panel) => {
@@ -482,6 +536,11 @@
       function hideLoading() {
         document.getElementById('loading-overlay').style.display = 'none';
       }
+
+      // ------------------ Logo Redirect ------------------
+      document.getElementById('logo').addEventListener('click', () => {
+        window.location.href = '/';
+      });
 
       // ------------------ Landing Panel Events ------------------
       document
@@ -533,17 +592,16 @@
 
       // ------------------ Markdown Parser for Notes ------------------
       function parseMarkdown(markdownText) {
-        // Basic markdown parser: handles headings (#), subheadings (##), bullet lists (-, *) and line breaks.
         let html = markdownText;
-
         // Convert headings
         html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
         html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
         html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        // Convert bold text (fixes stray **** issues)
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         // Convert bullet lists
         html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
         html = html.replace(/<\/li>\s*<li>/gim, '</li><li>');
-        // Wrap lists with <ul> tags if any <li> exists
         if (html.indexOf('<li>') !== -1) {
           html = '<ul>' + html + '</ul>';
         }
@@ -566,7 +624,6 @@
           showLoading();
           callGeminiAPINotes(prompt);
         });
-
       function callGeminiAPINotes(prompt) {
         const key = sessionStorage.getItem('geminiApiKey');
         if (!key) {
@@ -585,10 +642,8 @@
             hideLoading();
             if (data?.candidates?.length > 0) {
               const answer = data.candidates[0]?.content?.parts[0]?.text || '';
-              // Parse markdown and set HTML
               document.getElementById('notes-container').innerHTML =
                 parseMarkdown(answer);
-              // Show the "Generate Quiz on this Topic" button after notes are generated
               document
                 .getElementById('notes-to-quiz-btn')
                 .classList.remove('hidden');
@@ -601,7 +656,6 @@
             alert('Something went wrong: ' + error.message);
           });
       }
-
       document
         .getElementById('notes-to-quiz-btn')
         .addEventListener('click', function () {
@@ -609,6 +663,16 @@
           document.getElementById('topic-input').value = topic;
           showPanel('quiz-settings-page');
         });
+
+      // ------------------ Trending Topics Logic ------------------
+      document.querySelectorAll('.trending-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const subject = btn.getAttribute('data-subject');
+          const topic = btn.getAttribute('data-topic');
+          document.getElementById('subject-input').value = subject;
+          document.getElementById('topic-input').value = topic;
+        });
+      });
 
       // ------------------ Quiz Settings (Wizard) Panel ------------------
       document
@@ -618,6 +682,7 @@
           const subject = document.getElementById('subject-input').value.trim();
           const topic = document.getElementById('topic-input').value.trim();
           const questionType = document.getElementById('question-type').value;
+          currentQuizType = questionType; // store globally for rendering
           const numQuestions = document.getElementById('num-questions').value;
           const timeDuration = document.getElementById('time-duration').value;
           const difficulty = document.getElementById('difficulty-select').value;
@@ -625,7 +690,7 @@
           let prompt =
             'Generate a quiz in JSON format with the following structure:\n';
           prompt +=
-            '{\n  "subject": "subject",\n  "topic": "topic",\n  "questionType": "question type",\n  "questions": [\n    {\n      "question": "...",\n      "options": ["...", "...", "...", "..."],\n      "answer": (index of correct option for MCQ or answer text for descriptive),\n      "explanation": "..."  \n    },\n    ...\n  ]\n}\n';
+            '{\n  "subject": "subject",\n  "topic": "topic",\n  "questionType": "question type",\n  "questions": [\n    {\n      "question": "...",\n      "options": ["...", "...", "...", "..."],\n      "answer": (index of correct option for MCQ or answer text for descriptive),\n      "explanation": "..."\n    },\n    ...\n  ]\n}\n';
           prompt +=
             "Ensure that the quiz covers key concepts for the subject '" +
             subject +
@@ -652,7 +717,6 @@
           callGeminiAPIQuiz(prompt);
         });
 
-      let currentQuiz = null;
       function callGeminiAPIQuiz(prompt) {
         const key = sessionStorage.getItem('geminiApiKey');
         if (!key) {
@@ -700,7 +764,7 @@
           });
       }
 
-      // ------------------ Quiz Panel & Evaluation ------------------
+      // ------------------ Render Quiz ------------------
       function renderQuiz() {
         const quizContainer = document.getElementById('quiz-container');
         quizContainer.innerHTML = '';
@@ -708,53 +772,118 @@
           quizContainer.innerHTML = '<p>No quiz available.</p>';
           return;
         }
+        // Render each question
         currentQuiz.questions.forEach((q, index) => {
           const qDiv = document.createElement('div');
           qDiv.className = 'quiz-question';
           const questionText = document.createElement('p');
           questionText.textContent = index + 1 + '. ' + q.question;
           qDiv.appendChild(questionText);
-          if (q.options && Array.isArray(q.options)) {
-            q.options.forEach((option, i) => {
-              const optionLabel = document.createElement('label');
-              const radioInput = document.createElement('input');
-              radioInput.type = 'radio';
-              radioInput.name = 'question-' + index;
-              radioInput.value = i;
-              optionLabel.appendChild(radioInput);
-              optionLabel.appendChild(document.createTextNode(' ' + option));
-              qDiv.appendChild(optionLabel);
-            });
+          // For multiple-choice, render options; for descriptive/mixed, render a textarea
+          if (currentQuizType === 'multiple-choice') {
+            if (q.options && Array.isArray(q.options)) {
+              q.options.forEach((option, i) => {
+                const optionLabel = document.createElement('label');
+                const radioInput = document.createElement('input');
+                radioInput.type = 'radio';
+                radioInput.name = 'question-' + index;
+                radioInput.value = i;
+                optionLabel.appendChild(radioInput);
+                optionLabel.appendChild(document.createTextNode(' ' + option));
+                qDiv.appendChild(optionLabel);
+              });
+            }
           } else {
-            // For descriptive questions, show a textarea.
+            // For descriptive or mixed, always render a textarea
             const answerBox = document.createElement('textarea');
             answerBox.name = 'question-' + index;
             answerBox.placeholder = 'Enter your answer here...';
+            answerBox.style.width = '100%';
+            answerBox.style.minHeight = '80px';
             qDiv.appendChild(answerBox);
           }
           quizContainer.appendChild(qDiv);
         });
       }
 
+      // ------------------ Evaluate Descriptive Answer ------------------
+      // This function prompts the AI to evaluate a descriptive answer.
+      function evaluateDescriptiveAnswer(question, correctAnswer, userAnswer) {
+        return new Promise((resolve, reject) => {
+          const prompt = `Evaluate the following answer:
+Question: ${question}
+Correct Answer: ${correctAnswer}
+Student Answer: ${userAnswer}
+Provide a JSON response with:
+{ "marks": (number out of 1), "explanation": "brief explanation" }`;
+          const key = sessionStorage.getItem('geminiApiKey');
+          if (!key) {
+            reject('API key not set.');
+            return;
+          }
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+          const payload = { contents: [{ parts: [{ text: prompt }] }] };
+          fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data?.candidates?.length > 0) {
+                const answer =
+                  data.candidates[0]?.content?.parts[0]?.text || '';
+                try {
+                  const jsonStart = answer.indexOf('{');
+                  const jsonEnd = answer.lastIndexOf('}');
+                  if (jsonStart === -1 || jsonEnd === -1) {
+                    throw new Error(
+                      'No valid JSON object found in evaluation response.',
+                    );
+                  }
+                  const jsonString = answer
+                    .substring(jsonStart, jsonEnd + 1)
+                    .trim();
+                  const evaluation = JSON.parse(jsonString);
+                  resolve(evaluation);
+                } catch (e) {
+                  resolve({
+                    marks: 0,
+                    explanation: 'Evaluation error: ' + e.message,
+                  });
+                }
+              } else {
+                resolve({ marks: 0, explanation: 'No evaluation provided.' });
+              }
+            })
+            .catch((error) => {
+              resolve({ marks: 0, explanation: 'Error: ' + error.message });
+            });
+        });
+      }
+
+      // ------------------ Quiz Submission & Evaluation ------------------
       document
         .getElementById('submit-quiz-btn')
-        .addEventListener('click', () => {
+        .addEventListener('click', async () => {
           if (!currentQuiz || !currentQuiz.questions) {
             alert('No quiz available to submit.');
             return;
           }
           let score = 0;
           const total = currentQuiz.questions.length;
-          const incorrectDetails = [];
-          currentQuiz.questions.forEach((q, index) => {
-            if (q.options && Array.isArray(q.options)) {
-              const selected = document.querySelector(
+          let incorrectDetails = [];
+          let evalPromises = [];
+          // Loop through questions for evaluation
+          for (let index = 0; index < total; index++) {
+            let q = currentQuiz.questions[index];
+            if (currentQuizType === 'multiple-choice') {
+              let selected = document.querySelector(
                 'input[name="question-' + index + '"]:checked',
               );
               if (selected && parseInt(selected.value) === q.answer) {
                 score++;
               } else {
-                // Save details for MCQ questions if answered incorrectly (and if explanation is provided)
                 incorrectDetails.push({
                   question: q.question,
                   yourAnswer: selected
@@ -765,24 +894,44 @@
                 });
               }
             } else {
-              const answerText = document
+              // For descriptive (or mixed), get user's answer from textarea
+              let answerText = document
                 .querySelector('textarea[name="question-' + index + '"]')
                 .value.trim();
-              if (answerText.toLowerCase() === q.answer.toLowerCase()) {
-                score++;
-              }
+              // Evaluate the answer using the AI
+              let promise = evaluateDescriptiveAnswer(
+                q.question,
+                q.answer,
+                answerText,
+              ).then((evaluation) => {
+                if (evaluation.marks >= 0.5) {
+                  score += evaluation.marks;
+                }
+                incorrectDetails.push({
+                  question: q.question,
+                  yourAnswer: answerText || 'No answer',
+                  correctAnswer: q.answer,
+                  evaluation:
+                    evaluation.explanation || 'No explanation provided.',
+                });
+              });
+              evalPromises.push(promise);
             }
-          });
-          // Prepare results content for dedicated panel
-          let resultsHTML = `<p>Your Score: ${score} out of ${total}</p>`;
+          }
+          if (evalPromises.length > 0) {
+            await Promise.all(evalPromises);
+          }
+          let resultsHTML = `<p><strong>Your Score:</strong> ${score} out of ${total}</p>`;
           if (incorrectDetails.length > 0) {
-            resultsHTML += `<h3>Incorrect Answers (MCQ):</h3>`;
-            incorrectDetails.forEach((item, i) => {
+            resultsHTML += `<h3>Details for Incorrect/Unevaluated Answers:</h3>`;
+            incorrectDetails.forEach((item) => {
               resultsHTML += `<div class="result-item">
               <p><strong>Question:</strong> ${item.question}</p>
               <p><strong>Your Answer:</strong> ${item.yourAnswer}</p>
               <p><strong>Correct Answer:</strong> ${item.correctAnswer}</p>
-              <p><strong>Explanation:</strong> ${item.explanation}</p>
+              <p><strong>Evaluation:</strong> ${
+                item.evaluation || item.explanation
+              }</p>
             </div>`;
             });
           }
