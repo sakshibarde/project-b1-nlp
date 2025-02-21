@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gemini x Drastic - Quiz Generator</title>
+    <title>Study Helper - Quiz & Notes Generator</title>
     <style>
       /* Base Reset */
       * {
@@ -11,32 +11,27 @@
         padding: 0;
         box-sizing: border-box;
       }
-
-      /* Body & Typography */
       body {
-        font-family: Arial, sans-serif;
+        font-family: 'Roboto', sans-serif;
         background-color: #1d1f21;
         color: #f8f8f2;
         line-height: 1.6;
         padding: 20px;
       }
-
       a {
         color: #66d9ef;
         text-decoration: none;
       }
-
       a:hover {
         text-decoration: underline;
       }
-
       /* Header */
       header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: #282a36;
-        padding: 0px 20px;
+        padding: 0 20px;
         position: fixed;
         top: 0;
         left: 0;
@@ -59,10 +54,11 @@
         font-weight: bold;
       }
       .header-buttons button {
-        background: transparent;
-        border: 1px solid #6272a4;
-        color: #f8f8f2;
+        /* Use secondary button style */
         padding: 8px 12px;
+        border: 1px solid #6272a4;
+        background: transparent;
+        color: #f8f8f2;
         border-radius: 4px;
         cursor: pointer;
         transition: background 0.3s ease, color 0.3s ease;
@@ -72,8 +68,57 @@
         background: #6272a4;
         color: #282a36;
       }
-
-      /* Main Panels */
+      /* Modern Button Styles */
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+      }
+      .btn-primary {
+        background: #50fa7b;
+        color: #282a36;
+      }
+      .btn-primary:hover {
+        background: #8be9fd;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .btn-secondary {
+        background: transparent;
+        color: #50fa7b;
+        border: 1px solid #50fa7b;
+      }
+      .btn-secondary:hover {
+        background: #50fa7b;
+        color: #282a36;
+      }
+      /* Modern Form Components */
+      form label {
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      form input,
+      form select,
+      form textarea {
+        padding: 12px;
+        margin-bottom: 15px;
+        border: none;
+        border-bottom: 2px solid #44475a;
+        background: transparent;
+        color: #f8f8f2;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s ease;
+      }
+      form input:focus,
+      form select:focus,
+      form textarea:focus {
+        border-bottom-color: #50fa7b;
+      }
+      /* Panels */
       main {
         margin-top: 80px;
       }
@@ -93,39 +138,6 @@
         margin-bottom: 15px;
         color: #ff79c6;
       }
-
-      /* Form Styles */
-      form {
-        display: flex;
-        flex-direction: column;
-      }
-      form label {
-        margin-bottom: 5px;
-        font-weight: bold;
-      }
-      form input,
-      form select {
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #44475a;
-        border-radius: 4px;
-        background: #44475a;
-        color: #f8f8f2;
-      }
-      form button {
-        background: #50fa7b;
-        color: #282a36;
-        border: none;
-        padding: 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: background 0.3s ease;
-      }
-      form button:hover {
-        background: #8be9fd;
-      }
-
       /* Quiz Styles */
       .quiz-question {
         margin-bottom: 20px;
@@ -142,15 +154,22 @@
         margin-bottom: 8px;
         cursor: pointer;
       }
-
-      /* Footer */
-      footer {
-        text-align: center;
-        margin-top: 40px;
-        color: #6272a4;
-        font-size: 0.9rem;
+      /* Dedicated Results Panel */
+      #results-page h2 {
+        margin-bottom: 15px;
       }
-
+      #results-container {
+        margin-bottom: 20px;
+      }
+      .result-item {
+        background: #44475a;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+      }
+      .result-item p {
+        margin-bottom: 5px;
+      }
       /* Modal Styling */
       .modal {
         position: fixed;
@@ -180,32 +199,71 @@
       }
       .modal-content input[type='text'] {
         width: 100%;
-        padding: 10px;
+        padding: 12px;
         margin-bottom: 15px;
-        border: 1px solid #44475a;
-        border-radius: 4px;
-        background: #44475a;
+        border: none;
+        border-bottom: 2px solid #44475a;
+        background: transparent;
         color: #f8f8f2;
+        outline: none;
+        transition: border-color 0.3s ease;
+      }
+      .modal-content input[type='text']:focus {
+        border-bottom-color: #50fa7b;
       }
       .modal-buttons {
         display: flex;
         justify-content: flex-end;
       }
       .modal-buttons button {
-        background: #50fa7b;
-        color: #282a36;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 4px;
-        cursor: pointer;
         margin-left: 10px;
-        transition: background 0.3s ease;
       }
-      .modal-buttons button:hover {
+      /* Loading Overlay */
+      #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(29, 31, 33, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+        display: none;
+      }
+      .spinner {
+        border: 6px solid #44475a;
+        border-top: 6px solid #50fa7b;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #282a36;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #6272a4;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
         background: #8be9fd;
       }
-
-      /* Responsive Design */
+      /* Responsive */
       @media (max-width: 768px) {
         .header-buttons button {
           padding: 6px 10px;
@@ -224,32 +282,23 @@
           width: 65px;
         }
       }
-
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #282a36;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #6272a4;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #8be9fd;
-      }
     </style>
   </head>
   <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
     <!-- Header -->
     <header>
       <div class="logo">
         <img src="/assets/ask-pce.png" alt="Logo" />
       </div>
       <div class="header-buttons">
-        <button id="settings-btn" title="Settings">API Key</button>
+        <button id="setup-key-btn" title="Settings" class="btn btn-secondary">
+          API Key
+        </button>
       </div>
     </header>
 
@@ -257,41 +306,73 @@
     <main>
       <!-- Landing Panel -->
       <div id="landing-page" class="panel">
-        <h1>Welcome to the Quiz Generator</h1>
+        <h1>Welcome to Study Helper</h1>
         <p>
-          Create a customized quiz by choosing your subject, topics, and more.
+          Use this application to generate customized quizzes or detailed study
+          notes.
         </p>
-        <button id="start-quiz-btn">Start Quiz</button>
-        <br /><br />
-        <button id="setup-key-btn">Set Up API Key</button>
+        <button id="generate-quiz-btn" class="btn btn-primary">
+          Generate Quiz
+        </button>
+        <button id="generate-notes-btn" class="btn btn-primary">
+          Generate Notes
+        </button>
+        <button id="setup-key-btn-landing" class="btn btn-secondary">
+          Set Up API Key
+        </button>
       </div>
 
-      <!-- Quiz Settings Panel -->
-      <div id="selection-page" class="panel hidden">
+      <!-- Notes Panel -->
+      <div id="notes-page" class="panel hidden">
+        <h2>Generate Study Notes</h2>
+        <form id="notes-form">
+          <label for="notes-topic">Topic:</label>
+          <input
+            type="text"
+            id="notes-topic"
+            placeholder="Enter Topic"
+            required
+          />
+          <button
+            type="submit"
+            id="generate-notes-submit-btn"
+            class="btn btn-primary"
+          >
+            Generate Notes
+          </button>
+        </form>
+        <div id="notes-container"></div>
+        <button id="notes-to-quiz-btn" class="btn btn-primary hidden">
+          Generate Quiz on this Topic
+        </button>
+      </div>
+
+      <!-- Quiz Settings (Wizard) Panel -->
+      <div id="quiz-settings-page" class="panel hidden">
         <h2>Quiz Settings</h2>
         <form id="quiz-settings-form">
-          <label for="subject-input">Subject:</label>
+          <label for="subject-input">Syllabus/Subject/Course:</label>
           <input
             type="text"
             id="subject-input"
-            placeholder="Enter Subject"
+            placeholder="e.g. Engineering Courses, Interview Prep"
             required
           />
 
-          <label for="topics-input">Topics (comma separated):</label>
+          <label for="topic-input">Topic:</label>
           <input
             type="text"
-            id="topics-input"
-            placeholder="Enter Topics"
+            id="topic-input"
+            placeholder="Enter Topic"
             required
           />
 
-          <label for="difficulty-select">Difficulty (optional):</label>
-          <select id="difficulty-select">
-            <option value="">Select Difficulty</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+          <label for="question-type">Type of Questions:</label>
+          <select id="question-type" required>
+            <option value="">Select Type</option>
+            <option value="multiple-choice">Multiple Choice</option>
+            <option value="descriptive">Descriptive</option>
+            <option value="mixed">Mixed</option>
           </select>
 
           <label for="num-questions">Number of Questions (optional):</label>
@@ -310,7 +391,21 @@
             min="1"
           />
 
-          <button type="submit" id="generate-quiz-btn">Generate Quiz</button>
+          <label for="difficulty-select">Difficulty (optional):</label>
+          <select id="difficulty-select">
+            <option value="">Select Difficulty</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <button
+            type="submit"
+            id="generate-quiz-submit-btn"
+            class="btn btn-primary"
+          >
+            Generate Quiz
+          </button>
         </form>
       </div>
 
@@ -318,7 +413,18 @@
       <div id="quiz-page" class="panel hidden">
         <h2>Quiz</h2>
         <div id="quiz-container"></div>
-        <button id="submit-quiz-btn">Submit Quiz</button>
+        <button id="submit-quiz-btn" class="btn btn-primary">
+          Submit Quiz
+        </button>
+      </div>
+
+      <!-- Results Panel -->
+      <div id="results-page" class="panel hidden">
+        <h2>Results</h2>
+        <div id="results-container"></div>
+        <button id="results-back-btn" class="btn btn-primary">
+          Back to Landing
+        </button>
       </div>
     </main>
 
@@ -330,7 +436,7 @@
       </p>
     </footer>
 
-    <!-- Settings Modal -->
+    <!-- API Key Modal -->
     <div id="settings-modal" class="modal">
       <div class="modal-content">
         <h2>API Key Settings</h2>
@@ -340,27 +446,27 @@
           placeholder="Enter your Gemini API Key"
         />
         <div class="modal-buttons">
-          <button id="cancel-settings">Cancel</button>
-          <button id="save-settings">Save</button>
+          <button id="cancel-settings" class="btn btn-secondary">Cancel</button>
+          <button id="save-settings" class="btn btn-primary">Save</button>
         </div>
       </div>
     </div>
 
-    <!-- Results Modal -->
+    <!-- Results Modal (Deprecated: now using dedicated Results Panel) -->
     <div id="result-modal" class="modal">
       <div class="modal-content">
         <h2>Quiz Results</h2>
         <p id="result-text"></p>
-        <button id="close-result-btn">Close</button>
+        <button id="close-result-btn" class="btn btn-primary">Close</button>
       </div>
     </div>
 
     <script>
       // Utility Functions
       function showPanel(panelId) {
-        document
-          .querySelectorAll('.panel')
-          .forEach((panel) => panel.classList.add('hidden'));
+        document.querySelectorAll('.panel').forEach((panel) => {
+          panel.classList.add('hidden');
+        });
         document.getElementById(panelId).classList.remove('hidden');
       }
       function updateFooterYear() {
@@ -369,64 +475,99 @@
       }
       updateFooterYear();
 
-      // Panel Navigation
+      // Loading overlay functions
+      function showLoading() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+      }
+      function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+      }
+
+      // ------------------ Landing Panel Events ------------------
       document
-        .getElementById('start-quiz-btn')
+        .getElementById('generate-quiz-btn')
         .addEventListener('click', () => {
           if (!sessionStorage.getItem('geminiApiKey')) {
             alert('API key is not set. Please set your API key.');
             return;
           }
-          showPanel('selection-page');
+          showPanel('quiz-settings-page');
         });
+      document
+        .getElementById('generate-notes-btn')
+        .addEventListener('click', () => {
+          if (!sessionStorage.getItem('geminiApiKey')) {
+            alert('API key is not set. Please set your API key.');
+            return;
+          }
+          showPanel('notes-page');
+        });
+      document
+        .getElementById('setup-key-btn-landing')
+        .addEventListener('click', () => {
+          document.getElementById('api-key-input').value =
+            sessionStorage.getItem('geminiApiKey') || '';
+          document.getElementById('settings-modal').style.display = 'flex';
+        });
+
+      // ------------------ API Key Modal Logic ------------------
       document.getElementById('setup-key-btn').addEventListener('click', () => {
         document.getElementById('api-key-input').value =
           sessionStorage.getItem('geminiApiKey') || '';
         document.getElementById('settings-modal').style.display = 'flex';
       });
-
-      // Quiz Settings Form Submission
       document
-        .getElementById('quiz-settings-form')
+        .getElementById('cancel-settings')
+        .addEventListener('click', () => {
+          document.getElementById('settings-modal').style.display = 'none';
+        });
+      document.getElementById('save-settings').addEventListener('click', () => {
+        const key = document.getElementById('api-key-input').value.trim();
+        if (key) {
+          sessionStorage.setItem('geminiApiKey', key);
+          document.getElementById('settings-modal').style.display = 'none';
+        } else {
+          alert('Please enter a valid API key.');
+        }
+      });
+
+      // ------------------ Markdown Parser for Notes ------------------
+      function parseMarkdown(markdownText) {
+        // Basic markdown parser: handles headings (#), subheadings (##), bullet lists (-, *) and line breaks.
+        let html = markdownText;
+
+        // Convert headings
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        // Convert bullet lists
+        html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
+        html = html.replace(/<\/li>\s*<li>/gim, '</li><li>');
+        // Wrap lists with <ul> tags if any <li> exists
+        if (html.indexOf('<li>') !== -1) {
+          html = '<ul>' + html + '</ul>';
+        }
+        // Convert line breaks
+        html = html.replace(/\n/gim, '<br />');
+        return html;
+      }
+
+      // ------------------ Notes Panel ------------------
+      document
+        .getElementById('notes-form')
         .addEventListener('submit', function (e) {
           e.preventDefault();
-          const subject = document.getElementById('subject-input').value.trim();
-          const topics = document.getElementById('topics-input').value.trim();
-          const difficulty = document.getElementById('difficulty-select').value;
-          const numQuestions = document.getElementById('num-questions').value;
-          const timeDuration = document.getElementById('time-duration').value;
-
-          let prompt =
-            'Generate a quiz in JSON format with the following structure:\n';
-          prompt +=
-            '{\n  "topics": [array of topics],\n  "subject": "subject",\n  "questions": [\n    {\n      "question": "...",\n      "options": ["...", "...", "...", "..."],\n      "answer": index of the correct option (0-based)\n    },\n    ...\n  ]\n}\n';
-          prompt +=
-            "Ensure that the questions cover key concepts for the subject '" +
-            subject +
-            "' and the topics [" +
-            topics +
-            '].';
-          if (difficulty) {
-            prompt += " Set the difficulty to '" + difficulty + "'.";
-          }
-          if (numQuestions) {
-            prompt += ' Generate ' + numQuestions + ' questions.';
-          }
-          if (timeDuration) {
-            prompt +=
-              ' The quiz should be designed to be completed in ' +
-              timeDuration +
-              ' minutes.';
-          }
-          prompt += ' Provide only the JSON object in your response.';
-
-          callGeminiAPI(prompt);
+          const topic = document.getElementById('notes-topic').value.trim();
+          if (!topic) return;
+          const prompt =
+            "Generate detailed study notes on the topic: '" +
+            topic +
+            "'. Format the notes using markdown (with headings, subheadings, bullet points, etc.). Provide only the notes content in your response.";
+          showLoading();
+          callGeminiAPINotes(prompt);
         });
 
-      let currentQuiz = null;
-
-      // Gemini API Call
-      function callGeminiAPI(prompt) {
+      function callGeminiAPINotes(prompt) {
         const key = sessionStorage.getItem('geminiApiKey');
         if (!key) {
           alert('API key not set. Please set your Gemini API key.');
@@ -441,6 +582,93 @@
         })
           .then((response) => response.json())
           .then((data) => {
+            hideLoading();
+            if (data?.candidates?.length > 0) {
+              const answer = data.candidates[0]?.content?.parts[0]?.text || '';
+              // Parse markdown and set HTML
+              document.getElementById('notes-container').innerHTML =
+                parseMarkdown(answer);
+              // Show the "Generate Quiz on this Topic" button after notes are generated
+              document
+                .getElementById('notes-to-quiz-btn')
+                .classList.remove('hidden');
+            } else {
+              alert('No notes generated. Please try again.');
+            }
+          })
+          .catch((error) => {
+            hideLoading();
+            alert('Something went wrong: ' + error.message);
+          });
+      }
+
+      document
+        .getElementById('notes-to-quiz-btn')
+        .addEventListener('click', function () {
+          const topic = document.getElementById('notes-topic').value.trim();
+          document.getElementById('topic-input').value = topic;
+          showPanel('quiz-settings-page');
+        });
+
+      // ------------------ Quiz Settings (Wizard) Panel ------------------
+      document
+        .getElementById('quiz-settings-form')
+        .addEventListener('submit', function (e) {
+          e.preventDefault();
+          const subject = document.getElementById('subject-input').value.trim();
+          const topic = document.getElementById('topic-input').value.trim();
+          const questionType = document.getElementById('question-type').value;
+          const numQuestions = document.getElementById('num-questions').value;
+          const timeDuration = document.getElementById('time-duration').value;
+          const difficulty = document.getElementById('difficulty-select').value;
+
+          let prompt =
+            'Generate a quiz in JSON format with the following structure:\n';
+          prompt +=
+            '{\n  "subject": "subject",\n  "topic": "topic",\n  "questionType": "question type",\n  "questions": [\n    {\n      "question": "...",\n      "options": ["...", "...", "...", "..."],\n      "answer": (index of correct option for MCQ or answer text for descriptive),\n      "explanation": "..."  \n    },\n    ...\n  ]\n}\n';
+          prompt +=
+            "Ensure that the quiz covers key concepts for the subject '" +
+            subject +
+            "' and topic '" +
+            topic +
+            "'. Use question type '" +
+            questionType +
+            "'.";
+          if (numQuestions) {
+            prompt += ' Generate ' + numQuestions + ' questions.';
+          }
+          if (timeDuration) {
+            prompt +=
+              ' The quiz should be designed to be completed in ' +
+              timeDuration +
+              ' minutes.';
+          }
+          if (difficulty) {
+            prompt += " Set the difficulty to '" + difficulty + "'.";
+          }
+          prompt += ' Provide only the JSON object in your response.';
+
+          showLoading();
+          callGeminiAPIQuiz(prompt);
+        });
+
+      let currentQuiz = null;
+      function callGeminiAPIQuiz(prompt) {
+        const key = sessionStorage.getItem('geminiApiKey');
+        if (!key) {
+          alert('API key not set. Please set your Gemini API key.');
+          return;
+        }
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            hideLoading();
             if (data?.candidates?.length > 0) {
               const answer = data.candidates[0]?.content?.parts[0]?.text || '';
               try {
@@ -467,11 +695,12 @@
             }
           })
           .catch((error) => {
+            hideLoading();
             alert('Something went wrong: ' + error.message);
           });
       }
 
-      // Render Quiz
+      // ------------------ Quiz Panel & Evaluation ------------------
       function renderQuiz() {
         const quizContainer = document.getElementById('quiz-container');
         quizContainer.innerHTML = '';
@@ -485,21 +714,28 @@
           const questionText = document.createElement('p');
           questionText.textContent = index + 1 + '. ' + q.question;
           qDiv.appendChild(questionText);
-          q.options.forEach((option, i) => {
-            const optionLabel = document.createElement('label');
-            const radioInput = document.createElement('input');
-            radioInput.type = 'radio';
-            radioInput.name = 'question-' + index;
-            radioInput.value = i;
-            optionLabel.appendChild(radioInput);
-            optionLabel.appendChild(document.createTextNode(' ' + option));
-            qDiv.appendChild(optionLabel);
-          });
+          if (q.options && Array.isArray(q.options)) {
+            q.options.forEach((option, i) => {
+              const optionLabel = document.createElement('label');
+              const radioInput = document.createElement('input');
+              radioInput.type = 'radio';
+              radioInput.name = 'question-' + index;
+              radioInput.value = i;
+              optionLabel.appendChild(radioInput);
+              optionLabel.appendChild(document.createTextNode(' ' + option));
+              qDiv.appendChild(optionLabel);
+            });
+          } else {
+            // For descriptive questions, show a textarea.
+            const answerBox = document.createElement('textarea');
+            answerBox.name = 'question-' + index;
+            answerBox.placeholder = 'Enter your answer here...';
+            qDiv.appendChild(answerBox);
+          }
           quizContainer.appendChild(qDiv);
         });
       }
 
-      // Quiz Submission & Evaluation
       document
         .getElementById('submit-quiz-btn')
         .addEventListener('click', () => {
@@ -509,57 +745,56 @@
           }
           let score = 0;
           const total = currentQuiz.questions.length;
+          const incorrectDetails = [];
           currentQuiz.questions.forEach((q, index) => {
-            const selected = document.querySelector(
-              'input[name="question-' + index + '"]:checked',
-            );
-            if (selected && parseInt(selected.value) === q.answer) {
-              score++;
+            if (q.options && Array.isArray(q.options)) {
+              const selected = document.querySelector(
+                'input[name="question-' + index + '"]:checked',
+              );
+              if (selected && parseInt(selected.value) === q.answer) {
+                score++;
+              } else {
+                // Save details for MCQ questions if answered incorrectly (and if explanation is provided)
+                incorrectDetails.push({
+                  question: q.question,
+                  yourAnswer: selected
+                    ? q.options[parseInt(selected.value)]
+                    : 'No answer',
+                  correctAnswer: q.options[q.answer],
+                  explanation: q.explanation || 'No explanation provided.',
+                });
+              }
+            } else {
+              const answerText = document
+                .querySelector('textarea[name="question-' + index + '"]')
+                .value.trim();
+              if (answerText.toLowerCase() === q.answer.toLowerCase()) {
+                score++;
+              }
             }
           });
-          document.getElementById(
-            'result-text',
-          ).textContent = `Your Score: ${score} out of ${total}`;
-          document.getElementById('result-modal').style.display = 'flex';
+          // Prepare results content for dedicated panel
+          let resultsHTML = `<p>Your Score: ${score} out of ${total}</p>`;
+          if (incorrectDetails.length > 0) {
+            resultsHTML += `<h3>Incorrect Answers (MCQ):</h3>`;
+            incorrectDetails.forEach((item, i) => {
+              resultsHTML += `<div class="result-item">
+              <p><strong>Question:</strong> ${item.question}</p>
+              <p><strong>Your Answer:</strong> ${item.yourAnswer}</p>
+              <p><strong>Correct Answer:</strong> ${item.correctAnswer}</p>
+              <p><strong>Explanation:</strong> ${item.explanation}</p>
+            </div>`;
+            });
+          }
+          document.getElementById('results-container').innerHTML = resultsHTML;
+          showPanel('results-page');
         });
 
       document
-        .getElementById('close-result-btn')
+        .getElementById('results-back-btn')
         .addEventListener('click', () => {
-          document.getElementById('result-modal').style.display = 'none';
+          showPanel('landing-page');
         });
-
-      // Settings Modal Functionality
-      document.getElementById('settings-btn').addEventListener('click', () => {
-        document.getElementById('api-key-input').value =
-          sessionStorage.getItem('geminiApiKey') || '';
-        document.getElementById('settings-modal').style.display = 'flex';
-      });
-      document
-        .getElementById('cancel-settings')
-        .addEventListener('click', () => {
-          document.getElementById('settings-modal').style.display = 'none';
-        });
-      document.getElementById('save-settings').addEventListener('click', () => {
-        const key = document.getElementById('api-key-input').value.trim();
-        if (key) {
-          sessionStorage.setItem('geminiApiKey', key);
-          document.getElementById('settings-modal').style.display = 'none';
-        } else {
-          alert('Please enter a valid API key.');
-        }
-      });
-
-      window.addEventListener('beforeunload', function (e) {
-        const confirmationMessage =
-          'API keys will be deleted. Are you sure you want to leave?';
-        if (confirm(confirmationMessage)) {
-          sessionStorage.clear();
-        } else {
-          e.preventDefault();
-          e.returnValue = '';
-        }
-      });
     </script>
   </body>
 </html>
