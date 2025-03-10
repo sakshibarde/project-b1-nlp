@@ -60,7 +60,7 @@
     </footer>
 
     <script>
-      // Update current year
+      // Set current year
       document.getElementById('current-year').textContent =
         new Date().getFullYear();
 
@@ -80,7 +80,7 @@
       let currentQuiz = null;
       let currentQuizType = '';
       let currentQuestionIndex = 0;
-      let userResponses = []; // to store answers
+      let userResponses = []; // to store user answers
 
       // Retrieve quiz settings from localStorage
       const settings = JSON.parse(localStorage.getItem('quizSettings') || '{}');
@@ -89,7 +89,7 @@
       // Build quiz prompt based on question type
       let prompt = '';
       if (currentQuizType === 'interactive') {
-        // Prompt Gemini to generate a flip-card game
+        // For interactive quiz, prompt Gemini to create a self-contained flip-card game.
         prompt =
           "Generate a self-contained flip card game in HTML, CSS, and JavaScript for subject '" +
           (settings.subject || 'General') +
@@ -97,6 +97,7 @@
           (settings.topic || 'General') +
           "'. The game should display a set of flip cards. Each card on the front shows a key question or point, and when clicked, it flips to reveal the answer or key information. Include a scoring mechanism and make sure the code is complete (only code, no extra commentary).";
       } else {
+        // For non-interactive quizzes, include clear instructions for the answer key.
         prompt =
           "Generate a quiz in JSON format for subject '" +
           (settings.subject || 'General') +
@@ -117,10 +118,12 @@
             localStorage.getItem('notesContent') +
             ' ';
         }
-        prompt += 'Provide only a JSON object with questions.';
+        prompt +=
+          "Provide only a JSON object with questions. Each question must have properties: 'question', 'options' (an array), 'correctAnswer' (the index of the correct option), and 'explanation'.";
       }
 
       showLoading();
+      // Call Gemini API to generate quiz or interactive game
       function callGeminiAPIQuiz(prompt) {
         const key = localStorage.getItem('geminiApiKey');
         if (!key) {
@@ -142,7 +145,7 @@
             if (data?.candidates?.length > 0) {
               const answer = data.candidates[0]?.content?.parts[0]?.text || '';
               if (currentQuizType === 'interactive') {
-                // For interactive, check if response seems like code (contains <html> or similar)
+                // For interactive, if answer appears to be valid code, render it directly
                 if (answer && answer.includes('<') && answer.includes('>')) {
                   document.getElementById('quiz-container').innerHTML = answer;
                 } else {
@@ -220,6 +223,9 @@
                   ) {
                     throw new Error('Parsed quiz has no questions.');
                   }
+                  // Log the quiz for debugging
+                  console.log('Parsed Quiz:', currentQuiz);
+                  // Initialize user responses array
                   userResponses = new Array(currentQuiz.questions.length).fill(
                     null,
                   );
@@ -240,7 +246,7 @@
 
       callGeminiAPIQuiz(prompt);
 
-      // Render non-interactive quiz questions (multiple-choice, descriptive, mixed)
+      // Render non-interactive quiz questions
       function renderQuiz() {
         const container = document.getElementById('quiz-container');
         container.innerHTML = '';
@@ -267,7 +273,7 @@
                 radio.value = i;
                 if (
                   userResponses[index] !== null &&
-                  parseInt(userResponses[index]) === i
+                  Number(userResponses[index]) === Number(i)
                 ) {
                   radio.checked = true;
                 }
@@ -327,12 +333,11 @@
         document.getElementById('progress-bar').style.width = percent + '%';
       }
 
-      // Handle quiz submission
+      // Handle quiz submission with improved evaluation
       document
         .getElementById('submit-quiz-btn')
         .addEventListener('click', () => {
           if (currentQuizType === 'interactive') {
-            // For interactive game, store dummy results or rely on the game’s own scoring
             const quizResults = {
               type: 'interactive',
               feedback:
@@ -347,16 +352,22 @@
             const detailedResults = [];
             currentQuiz.questions.forEach((q, index) => {
               const userAnswer = userResponses[index];
-              // Use fallback if correctAnswer is undefined
               const correctAnswer =
                 typeof q.correctAnswer !== 'undefined' ? q.correctAnswer : null;
               const explanation = q.explanation || 'No explanation provided.';
-              if (
-                userAnswer !== null &&
-                correctAnswer !== null &&
-                parseInt(userAnswer) === correctAnswer
-              ) {
-                score++;
+              if (userAnswer !== null && correctAnswer !== null) {
+                // Compare using Number conversion
+                if (Number(userAnswer) === Number(correctAnswer)) {
+                  score++;
+                } else {
+                  console.log(
+                    `Mismatch at question ${
+                      index + 1
+                    }: User answer ${userAnswer} vs Correct ${correctAnswer}`,
+                  );
+                }
+              } else {
+                console.warn(`Missing correctAnswer for question ${index + 1}`);
               }
               detailedResults.push({
                 question: q.question || 'Question not provided.',
@@ -372,6 +383,8 @@
               total: currentQuiz.questions.length,
               details: detailedResults,
             };
+            // Log results for debugging
+            console.log('Quiz Results:', quizResults);
             localStorage.setItem('quizResults', JSON.stringify(quizResults));
             window.location.href = 'results.html';
           }
