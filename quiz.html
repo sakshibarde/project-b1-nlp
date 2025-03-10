@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAI - Quiz</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header>
+      <div class="logo" id="logo">
+        <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>ExamAI</span>
+      </div>
+      <!-- Hamburger icon for small screens -->
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav-menu">
+        <a href="index.html" id="nav-home">Home</a>
+        <a href="notes.html" id="nav-notes">Notes</a>
+        <a href="quiz-settings.html" id="nav-quiz">Quiz</a>
+        <a href="analysis.html" id="nav-analysis">Analysis</a>
+        <a href="settings.html" id="nav-settings">Settings</a>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <div class="panel">
+        <h2>Quiz</h2>
+        <!-- Loader Overlay -->
+        <div id="loading-overlay">
+          <div class="spinner"></div>
+        </div>
+        <div id="progress-container">
+          <div id="progress-bar"></div>
+        </div>
+        <div id="quiz-container"></div>
+        <div>
+          <button id="prev-question-btn" class="btn btn-secondary">
+            Previous
+          </button>
+          <button id="next-question-btn" class="btn btn-secondary">Next</button>
+        </div>
+        <button id="submit-quiz-btn" class="btn btn-primary">
+          Submit Quiz
+        </button>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a>
+      </p>
+    </footer>
+
+    <script>
+      // Update current year
+      document.getElementById('current-year').textContent =
+        new Date().getFullYear();
+
+      // Loader functions
+      function showLoading() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+      }
+      function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+      }
+
+      // Check for API key
+      if (!localStorage.getItem('geminiApiKey')) {
+        alert('API key not set. Please setup your API key in Settings.');
+      }
+
+      let currentQuiz = null;
+      let currentQuizType = '';
+      let currentQuestionIndex = 0;
+      let userResponses = []; // to store answers
+
+      // Retrieve quiz settings from localStorage
+      const settings = JSON.parse(localStorage.getItem('quizSettings') || '{}');
+      currentQuizType = settings.questionType || 'multiple-choice';
+
+      // Build quiz prompt based on question type
+      let prompt = '';
+      if (currentQuizType === 'interactive') {
+        // Prompt Gemini to generate a flip-card game
+        prompt =
+          "Generate a self-contained flip card game in HTML, CSS, and JavaScript for subject '" +
+          (settings.subject || 'General') +
+          "' on topic '" +
+          (settings.topic || 'General') +
+          "'. The game should display a set of flip cards. Each card on the front shows a key question or point, and when clicked, it flips to reveal the answer or key information. Include a scoring mechanism and make sure the code is complete (only code, no extra commentary).";
+      } else {
+        prompt =
+          "Generate a quiz in JSON format for subject '" +
+          (settings.subject || 'General') +
+          "' on topic '" +
+          (settings.topic || 'General') +
+          "'. ";
+        prompt += 'Question type: ' + currentQuizType + '. ';
+        prompt += 'Generate ' + (settings.numQuestions || '7') + ' questions. ';
+        prompt +=
+          'The quiz should be completed in ' +
+          (settings.timeDuration || '9') +
+          ' minutes. ';
+        prompt +=
+          "Set the difficulty to '" + (settings.difficulty || 'medium') + "'. ";
+        if (localStorage.getItem('notesContent')) {
+          prompt +=
+            'Also consider these study notes: ' +
+            localStorage.getItem('notesContent') +
+            ' ';
+        }
+        prompt += 'Provide only a JSON object with questions.';
+      }
+
+      showLoading();
+      function callGeminiAPIQuiz(prompt) {
+        const key = localStorage.getItem('geminiApiKey');
+        if (!key) {
+          alert('API key not set. Please update your settings.');
+          hideLoading();
+          return;
+        }
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+          },
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            hideLoading();
+            if (data?.candidates?.length > 0) {
+              const answer = data.candidates[0]?.content?.parts[0]?.text || '';
+              if (currentQuizType === 'interactive') {
+                // For interactive, check if response seems like code (contains <html> or similar)
+                if (answer && answer.includes('<') && answer.includes('>')) {
+                  document.getElementById('quiz-container').innerHTML = answer;
+                } else {
+                  // Fallback: static flip-card game code
+                  document.getElementById('quiz-container').innerHTML = `
+                    <style>
+                      .flip-card {
+                        background-color: transparent;
+                        width: 200px;
+                        height: 200px;
+                        perspective: 1000px;
+                        display: inline-block;
+                        margin: 10px;
+                      }
+                      .flip-card-inner {
+                        position: relative;
+                        width: 100%;
+                        height: 100%;
+                        text-align: center;
+                        transition: transform 0.6s;
+                        transform-style: preserve-3d;
+                      }
+                      .flip-card:hover .flip-card-inner {
+                        transform: rotateY(180deg);
+                      }
+                      .flip-card-front, .flip-card-back {
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        backface-visibility: hidden;
+                        border: 1px solid #3b82f6;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 1rem;
+                      }
+                      .flip-card-front {
+                        background-color: #ffffff;
+                        color: #000000;
+                      }
+                      .flip-card-back {
+                        background-color: #3b82f6;
+                        color: #ffffff;
+                        transform: rotateY(180deg);
+                      }
+                    </style>
+                    <div class="flip-card">
+                      <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                          Question: What is the capital of France?
+                        </div>
+                        <div class="flip-card-back">
+                          Answer: Paris
+                        </div>
+                      </div>
+                    </div>
+                    <p>(Fallback flip card game)</p>
+                  `;
+                }
+              } else {
+                try {
+                  const jsonStart = answer.indexOf('{');
+                  const jsonEnd = answer.lastIndexOf('}');
+                  if (jsonStart === -1 || jsonEnd === -1) {
+                    throw new Error('No valid JSON found.');
+                  }
+                  const jsonString = answer
+                    .substring(jsonStart, jsonEnd + 1)
+                    .trim();
+                  currentQuiz = JSON.parse(jsonString);
+                  if (
+                    !currentQuiz.questions ||
+                    !Array.isArray(currentQuiz.questions)
+                  ) {
+                    throw new Error('Parsed quiz has no questions.');
+                  }
+                  userResponses = new Array(currentQuiz.questions.length).fill(
+                    null,
+                  );
+                  renderQuiz();
+                } catch (e) {
+                  alert('Error parsing quiz JSON: ' + e.message);
+                }
+              }
+            } else {
+              alert('No quiz generated. Please try again.');
+            }
+          })
+          .catch((error) => {
+            hideLoading();
+            alert('Something went wrong: ' + error.message);
+          });
+      }
+
+      callGeminiAPIQuiz(prompt);
+
+      // Render non-interactive quiz questions (multiple-choice, descriptive, mixed)
+      function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+        if (!currentQuiz || !currentQuiz.questions) {
+          container.innerHTML = '<p>No quiz available.</p>';
+          return;
+        }
+        currentQuiz.questions.forEach((q, index) => {
+          const div = document.createElement('div');
+          div.className = 'quiz-question';
+          div.dataset.index = index;
+          div.style.display = 'none';
+          const questionText = q.question || 'Question not provided.';
+          const questionP = document.createElement('p');
+          questionP.textContent = index + 1 + '. ' + questionText;
+          div.appendChild(questionP);
+          if (currentQuizType === 'multiple-choice') {
+            if (q.options && Array.isArray(q.options)) {
+              q.options.forEach((option, i) => {
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'question-' + index;
+                radio.value = i;
+                if (
+                  userResponses[index] !== null &&
+                  parseInt(userResponses[index]) === i
+                ) {
+                  radio.checked = true;
+                }
+                radio.addEventListener('change', () => {
+                  userResponses[index] = i;
+                });
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(' ' + option));
+                div.appendChild(label);
+              });
+            } else {
+              div.innerHTML += '<p>No options available.</p>';
+            }
+          } else if (
+            currentQuizType === 'descriptive' ||
+            currentQuizType === 'mixed'
+          ) {
+            const textarea = document.createElement('textarea');
+            textarea.name = 'question-' + index;
+            textarea.placeholder = 'Enter your answer here...';
+            textarea.value = userResponses[index] || '';
+            textarea.addEventListener('input', (e) => {
+              userResponses[index] = e.target.value;
+            });
+            div.appendChild(textarea);
+          }
+          container.appendChild(div);
+        });
+        showQuestion(0);
+      }
+
+      function showQuestion(index) {
+        currentQuestionIndex = index;
+        document
+          .querySelectorAll('.quiz-question')
+          .forEach((q) => (q.style.display = 'none'));
+        const qs = document.querySelectorAll('.quiz-question');
+        if (qs[index]) qs[index].style.display = 'block';
+        updateProgress(index + 1, currentQuiz.questions.length);
+      }
+
+      document
+        .getElementById('prev-question-btn')
+        .addEventListener('click', () => {
+          if (currentQuestionIndex > 0) showQuestion(currentQuestionIndex - 1);
+        });
+      document
+        .getElementById('next-question-btn')
+        .addEventListener('click', () => {
+          if (currentQuestionIndex < currentQuiz.questions.length - 1)
+            showQuestion(currentQuestionIndex + 1);
+        });
+
+      // Update progress bar
+      function updateProgress(current, total) {
+        const percent = (current / total) * 100;
+        document.getElementById('progress-bar').style.width = percent + '%';
+      }
+
+      // Handle quiz submission
+      document
+        .getElementById('submit-quiz-btn')
+        .addEventListener('click', () => {
+          if (currentQuizType === 'interactive') {
+            // For interactive game, store dummy results or rely on the game’s own scoring
+            const quizResults = {
+              type: 'interactive',
+              feedback:
+                'Interactive game played. (Scoring handled within the game)',
+              score: null,
+              questions: [],
+            };
+            localStorage.setItem('quizResults', JSON.stringify(quizResults));
+            window.location.href = 'results.html';
+          } else {
+            let score = 0;
+            const detailedResults = [];
+            currentQuiz.questions.forEach((q, index) => {
+              const userAnswer = userResponses[index];
+              // Use fallback if correctAnswer is undefined
+              const correctAnswer =
+                typeof q.correctAnswer !== 'undefined' ? q.correctAnswer : null;
+              const explanation = q.explanation || 'No explanation provided.';
+              if (
+                userAnswer !== null &&
+                correctAnswer !== null &&
+                parseInt(userAnswer) === correctAnswer
+              ) {
+                score++;
+              }
+              detailedResults.push({
+                question: q.question || 'Question not provided.',
+                options: q.options || [],
+                userAnswer,
+                correctAnswer,
+                explanation,
+              });
+            });
+            const quizResults = {
+              type: currentQuizType,
+              score: score,
+              total: currentQuiz.questions.length,
+              details: detailedResults,
+            };
+            localStorage.setItem('quizResults', JSON.stringify(quizResults));
+            window.location.href = 'results.html';
+          }
+        });
+
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>

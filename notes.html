@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAI - Generate Notes</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* Additional custom styles for the Notes page */
+      #notes-container {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f8f8;
+        border: 1px solid #3b82f6;
+        border-radius: 4px;
+      }
+      #hot-topics {
+        margin-bottom: 15px;
+      }
+      #hot-topics .hot-topic {
+        margin-right: 10px;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header>
+      <div class="logo" id="logo">
+        <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>ExamAI</span>
+      </div>
+      <!-- Hamburger icon for small screens -->
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav-menu">
+        <a href="index.html" id="nav-home">Home</a>
+        <a href="notes.html" id="nav-notes">Notes</a>
+        <a href="quiz-settings.html" id="nav-quiz">Quiz</a>
+        <a href="analysis.html" id="nav-analysis">Analysis</a>
+        <a href="settings.html" id="nav-settings">Settings</a>
+      </nav>
+    </header>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+      <div class="panel">
+        <h2>Generate Study Notes</h2>
+        <!-- Hot Topics for quick selection -->
+        <div id="hot-topics">
+          <button
+            class="btn btn-secondary hot-topic"
+            data-topic="Interview Prep"
+          >
+            Interview Prep
+          </button>
+          <button
+            class="btn btn-secondary hot-topic"
+            data-topic="Engineering OS"
+          >
+            Engineering OS
+          </button>
+          <button class="btn btn-secondary hot-topic" data-topic="DBMS">
+            DBMS
+          </button>
+          <button class="btn btn-secondary hot-topic" data-topic="Networking">
+            Networking
+          </button>
+        </div>
+        <form id="notes-form">
+          <label for="notes-topic">Enter Topic:</label>
+          <input
+            type="text"
+            id="notes-topic"
+            placeholder="e.g. Calculus, Thermodynamics"
+            required
+          />
+          <button type="submit" class="btn btn-primary">Generate Notes</button>
+        </form>
+        <div id="notes-container"></div>
+        <!-- This button appears only after notes are generated -->
+        <button id="notes-to-quiz-btn" class="btn btn-primary hidden">
+          Generate Quiz on this Topic
+        </button>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a>
+      </p>
+    </footer>
+
+    <script>
+      // Update current year
+      document.getElementById('current-year').textContent =
+        new Date().getFullYear();
+
+      // Check for API key
+      if (!localStorage.getItem('geminiApiKey')) {
+        alert('API key not set. Please setup your API key in Settings.');
+      }
+
+      // Loading overlay functions
+      function showLoading() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+      }
+      function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+      }
+
+      // Simple Markdown parser
+      function parseMarkdown(mdText) {
+        let html = mdText;
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
+        html = html.replace(/<\/li>\s*<li>/gim, '</li><li>');
+        if (html.indexOf('<li>') !== -1) {
+          html = '<ul>' + html + '</ul>';
+        }
+        html = html.replace(/\n/gim, '<br />');
+        return html;
+      }
+
+      // Hot topics click event: fill in topic input
+      document.querySelectorAll('.hot-topic').forEach((button) => {
+        button.addEventListener('click', () => {
+          document.getElementById('notes-topic').value =
+            button.getAttribute('data-topic');
+        });
+      });
+
+      // Handle Notes form submission
+      document
+        .getElementById('notes-form')
+        .addEventListener('submit', function (e) {
+          e.preventDefault();
+          const topic = document.getElementById('notes-topic').value.trim();
+          if (!topic) {
+            alert('Please enter a topic.');
+            return;
+          }
+          const prompt =
+            "Generate detailed study notes on the topic: '" +
+            topic +
+            "'. Format the notes using markdown.";
+          showLoading();
+          callGeminiAPINotes(prompt);
+        });
+
+      // Call Gemini API to generate notes
+      function callGeminiAPINotes(prompt) {
+        const key = localStorage.getItem('geminiApiKey');
+        if (!key) {
+          alert('API key not set. Please update your settings.');
+          hideLoading();
+          return;
+        }
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            hideLoading();
+            if (data?.candidates?.length > 0) {
+              const answer = data.candidates[0]?.content?.parts[0]?.text || '';
+              const htmlContent = parseMarkdown(answer);
+              document.getElementById('notes-container').innerHTML =
+                htmlContent;
+              localStorage.setItem('notesContent', answer);
+              document
+                .getElementById('notes-to-quiz-btn')
+                .classList.remove('hidden');
+            } else {
+              alert('No notes generated. Please try again.');
+            }
+          })
+          .catch((error) => {
+            hideLoading();
+            alert('Something went wrong: ' + error.message);
+          });
+      }
+
+      // Auto-generate quiz from notes when button is clicked
+      document
+        .getElementById('notes-to-quiz-btn')
+        .addEventListener('click', function () {
+          autoGenerateQuiz();
+        });
+
+      function autoGenerateQuiz() {
+        const topic = document.getElementById('notes-topic').value.trim();
+        const notesContent = localStorage.getItem('notesContent') || '';
+        const subject = 'General';
+        const questionType = 'multiple-choice';
+        const numQuestions = 7;
+        const timeDuration = 9;
+        const difficulty = 'medium';
+
+        let quizPrompt =
+          "Generate a quiz in JSON format for subject '" +
+          subject +
+          "' on topic '" +
+          topic +
+          "'. ";
+        quizPrompt +=
+          'Question type: ' +
+          questionType +
+          '. Generate ' +
+          numQuestions +
+          ' questions. ';
+        quizPrompt +=
+          'The quiz should be completed in ' + timeDuration + ' minutes. ';
+        quizPrompt += "Set the difficulty to '" + difficulty + "'. ";
+        if (notesContent) {
+          quizPrompt +=
+            'Also consider these study notes: ' + notesContent + ' ';
+        }
+        quizPrompt += 'Provide only a JSON object with questions.';
+
+        showLoading();
+        callGeminiAPIQuiz(quizPrompt);
+      }
+
+      // Call Gemini API to generate quiz using the prompt from notes
+      function callGeminiAPIQuiz(prompt) {
+        const key = localStorage.getItem('geminiApiKey');
+        if (!key) {
+          alert('API key not set. Please update your settings.');
+          hideLoading();
+          return;
+        }
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            hideLoading();
+            if (data?.candidates?.length > 0) {
+              const answer = data.candidates[0]?.content?.parts[0]?.text || '';
+              try {
+                const jsonStart = answer.indexOf('{');
+                const jsonEnd = answer.lastIndexOf('}');
+                if (jsonStart === -1 || jsonEnd === -1) {
+                  throw new Error('No valid JSON found.');
+                }
+                const jsonString = answer
+                  .substring(jsonStart, jsonEnd + 1)
+                  .trim();
+                const quizData = JSON.parse(jsonString);
+                localStorage.setItem('quizData', JSON.stringify(quizData));
+                window.location.href = 'quiz.html';
+              } catch (e) {
+                alert('Error parsing quiz JSON: ' + e.message);
+              }
+            } else {
+              alert('No quiz generated. Please try again.');
+            }
+          })
+          .catch((error) => {
+            hideLoading();
+            alert('Something went wrong: ' + error.message);
+          });
+      }
+
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>

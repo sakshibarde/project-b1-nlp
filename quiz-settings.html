@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAI - Quiz Settings</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header>
+      <div class="logo" id="logo">
+        <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>ExamAI</span>
+      </div>
+      <!-- Hamburger icon for small screens -->
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav-menu">
+        <a href="index.html" id="nav-home">Home</a>
+        <a href="notes.html" id="nav-notes">Notes</a>
+        <a href="quiz-settings.html" id="nav-quiz">Quiz</a>
+        <a href="analysis.html" id="nav-analysis">Analysis</a>
+        <a href="settings.html" id="nav-settings">Settings</a>
+      </nav>
+    </header>
+    <!-- Main Content -->
+    <main>
+      <div class="panel">
+        <h2>Quiz Settings</h2>
+        <!-- Trending Topics for quick quiz generation -->
+        <div id="trending-topics">
+          <div
+            class="trending-panel btn btn-secondary"
+            data-subject="Interview Prep"
+            data-topic="Aptitude Questions"
+          >
+            Interview Aptitude Questions
+          </div>
+          <div
+            class="trending-panel btn btn-secondary"
+            data-subject="Engineering"
+            data-topic="Operating Systems"
+          >
+            Engineering - OS
+          </div>
+          <div
+            class="trending-panel btn btn-secondary"
+            data-subject="Engineering"
+            data-topic="DBMS"
+          >
+            Engineering - DBMS
+          </div>
+          <div
+            class="trending-panel btn btn-secondary"
+            data-subject=""
+            data-topic=""
+          >
+            Custom
+          </div>
+        </div>
+
+        <form id="quiz-settings-form">
+          <label for="subject-input">Subject/Course:</label>
+          <input
+            type="text"
+            id="subject-input"
+            placeholder="e.g. Engineering Courses"
+            required
+          />
+
+          <label for="topic-input">Topic:</label>
+          <input
+            type="text"
+            id="topic-input"
+            placeholder="Enter Topic"
+            required
+          />
+
+          <label for="question-type">Type of Questions:</label>
+          <select id="question-type" required>
+            <option value="">Select Type</option>
+            <option value="multiple-choice">Multiple Choice</option>
+            <option value="descriptive">Descriptive</option>
+            <option value="mixed">Mixed</option>
+            <option value="interactive">Interactive</option>
+          </select>
+
+          <label for="num-questions">Number of Questions:</label>
+          <input type="number" id="num-questions" placeholder="7" min="1" />
+
+          <label for="time-duration">Time Duration (minutes):</label>
+          <input type="number" id="time-duration" placeholder="9" min="1" />
+
+          <label for="difficulty-select">Difficulty:</label>
+          <select id="difficulty-select">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <button type="submit" class="btn btn-primary">Generate Quiz</button>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a>
+      </p>
+    </footer>
+
+    <script>
+      document.getElementById('current-year').textContent =
+        new Date().getFullYear();
+
+      // Trending panels event handling:
+      // Clear any notesContent so that trending topics are not affected by previously generated notes.
+      document.querySelectorAll('.trending-panel').forEach((panel) => {
+        panel.addEventListener('click', () => {
+          const subject = panel.getAttribute('data-subject') || '';
+          const topic = panel.getAttribute('data-topic') || '';
+          // Remove stored notesContent to avoid interference
+          localStorage.removeItem('notesContent');
+          // If not custom, save settings and redirect immediately
+          if (subject || topic) {
+            const quizSettings = {
+              subject: subject,
+              topic: topic,
+              questionType: 'multiple-choice',
+              numQuestions: '7',
+              timeDuration: '9',
+              difficulty: 'medium',
+            };
+            localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
+            window.location.href = 'quiz.html';
+          } else {
+            // Otherwise, clear fields for custom entry
+            document.getElementById('subject-input').value = '';
+            document.getElementById('topic-input').value = '';
+          }
+        });
+      });
+
+      // Save quiz settings on form submit
+      document
+        .getElementById('quiz-settings-form')
+        .addEventListener('submit', function (e) {
+          e.preventDefault();
+          const subject = document.getElementById('subject-input').value.trim();
+          const topic = document.getElementById('topic-input').value.trim();
+          const questionType = document.getElementById('question-type').value;
+          const numQuestions = document.getElementById('num-questions').value;
+          const timeDuration = document.getElementById('time-duration').value;
+          const difficulty = document.getElementById('difficulty-select').value;
+
+          const quizSettings = {
+            subject,
+            topic,
+            questionType,
+            numQuestions,
+            timeDuration,
+            difficulty,
+          };
+          localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
+          window.location.href = 'quiz.html';
+        });
+
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>

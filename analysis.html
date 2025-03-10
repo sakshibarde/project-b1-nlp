@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAI - Analysis</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header>
+      <div class="logo" id="logo">
+        <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>ExamAI</span>
+      </div>
+      <!-- Hamburger icon for small screens -->
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav-menu">
+        <a href="index.html" id="nav-home">Home</a>
+        <a href="notes.html" id="nav-notes">Notes</a>
+        <a href="quiz-settings.html" id="nav-quiz">Quiz</a>
+        <a href="analysis.html" id="nav-analysis">Analysis</a>
+        <a href="settings.html" id="nav-settings">Settings</a>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <div class="panel">
+        <h2>Test Analysis</h2>
+        <div id="analysis-results"></div>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a>
+      </p>
+    </footer>
+
+    <!-- Loader Overlay -->
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <script>
+      // Update current year
+      document.getElementById('current-year').textContent =
+        new Date().getFullYear();
+
+      // Simple Markdown parser (same as used in notes page)
+      function parseMarkdown(mdText) {
+        let html = mdText;
+        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
+        html = html.replace(/<\/li>\s*<li>/gim, '</li><li>');
+        if (html.indexOf('<li>') !== -1) {
+          html = '<ul>' + html + '</ul>';
+        }
+        html = html.replace(/\n/gim, '<br />');
+        return html;
+      }
+
+      // Check for Gemini API key
+      if (!localStorage.getItem('geminiApiKey')) {
+        alert('API key not set. Please setup your API key in Settings.');
+      }
+
+      // Retrieve test history from localStorage
+      const testHistory = JSON.parse(
+        localStorage.getItem('testHistory') || '[]',
+      );
+
+      // Build a prompt for analysis
+      let prompt =
+        "Analyse the following test history and provide a prediction on the user's growth percentage, strong and weak points, and suggest resources and key focus areas for improvement:\n";
+      prompt += JSON.stringify(testHistory);
+
+      // Loader functions
+      function showLoading() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+      }
+      function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+      }
+
+      // Call Gemini API for analysis
+      function callGeminiAPIAnalysis(prompt) {
+        const key = localStorage.getItem('geminiApiKey');
+        if (!key) {
+          alert('API key not set. Please update your settings.');
+          return;
+        }
+        showLoading();
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+          },
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            hideLoading();
+            if (data?.candidates?.length > 0) {
+              // Parse the markdown response and render as HTML
+              const answer = data.candidates[0]?.content?.parts[0]?.text || '';
+              document.getElementById('analysis-results').innerHTML =
+                parseMarkdown(answer);
+            } else {
+              document.getElementById('analysis-results').innerText =
+                'No analysis available. Please try again.';
+            }
+          })
+          .catch((error) => {
+            hideLoading();
+            document.getElementById('analysis-results').innerText =
+              'Error: ' + error.message;
+          });
+      }
+
+      callGeminiAPIAnalysis(prompt);
+
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>

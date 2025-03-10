@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAI - Settings</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* (The shared styles.css uses the light theme and common navbar styles.) */
+    </style>
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header>
+      <div class="logo" id="logo">
+        <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>ExamAI</span>
+      </div>
+      <!-- Hamburger icon for small screens -->
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav-menu">
+        <a href="index.html" id="nav-home">Home</a>
+        <a href="notes.html" id="nav-notes">Notes</a>
+        <a href="quiz-settings.html" id="nav-quiz">Quiz</a>
+        <a href="analysis.html" id="nav-analysis">Analysis</a>
+        <a href="settings.html" id="nav-settings">Settings</a>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <div class="panel">
+        <h1>Settings</h1>
+        <p>Update your Gemini API key and default quiz configuration.</p>
+        <form id="settings-form">
+          <label for="api-key-input">Gemini API Key:</label>
+          <input
+            type="text"
+            id="api-key-input"
+            placeholder="Enter your Gemini API Key"
+            required
+          />
+
+          <hr />
+
+          <h2>Default Quiz Settings</h2>
+          <!-- Only the following settings are changeable: question type, number of questions, time duration, difficulty -->
+          <label for="default-question-type">Default Question Type:</label>
+          <select id="default-question-type">
+            <option value="multiple-choice">Multiple Choice</option>
+            <option value="descriptive">Descriptive</option>
+            <option value="mixed">Mixed</option>
+            <option value="interactive">Interactive</option>
+          </select>
+
+          <label for="default-num-questions"
+            >Default Number of Questions:</label
+          >
+          <input
+            type="number"
+            id="default-num-questions"
+            placeholder="7"
+            min="1"
+          />
+
+          <label for="default-time-duration"
+            >Default Time Duration (minutes):</label
+          >
+          <input
+            type="number"
+            id="default-time-duration"
+            placeholder="9"
+            min="1"
+          />
+
+          <label for="default-difficulty">Default Difficulty:</label>
+          <select id="default-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a>
+      </p>
+    </footer>
+
+    <script>
+      document.getElementById('current-year').textContent =
+        new Date().getFullYear();
+
+      // Pre-fill fields from localStorage if available
+      document.getElementById('api-key-input').value =
+        localStorage.getItem('geminiApiKey') || '';
+      document.getElementById('default-question-type').value =
+        localStorage.getItem('defaultQuestionType') || 'multiple-choice';
+      document.getElementById('default-num-questions').value =
+        localStorage.getItem('defaultNumQuestions') || '7';
+      document.getElementById('default-time-duration').value =
+        localStorage.getItem('defaultTimeDuration') || '9';
+      document.getElementById('default-difficulty').value =
+        localStorage.getItem('defaultDifficulty') || 'medium';
+
+      // Save settings on form submit
+      document
+        .getElementById('settings-form')
+        .addEventListener('submit', function (e) {
+          e.preventDefault();
+          localStorage.setItem(
+            'geminiApiKey',
+            document.getElementById('api-key-input').value.trim(),
+          );
+          localStorage.setItem(
+            'defaultQuestionType',
+            document.getElementById('default-question-type').value,
+          );
+          localStorage.setItem(
+            'defaultNumQuestions',
+            document.getElementById('default-num-questions').value,
+          );
+          localStorage.setItem(
+            'defaultTimeDuration',
+            document.getElementById('default-time-duration').value,
+          );
+          localStorage.setItem(
+            'defaultDifficulty',
+            document.getElementById('default-difficulty').value,
+          );
+          alert('Settings saved successfully!');
+          window.location.href = 'index.html';
+        });
+
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>

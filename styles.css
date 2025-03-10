@@ -1,0 +1,332 @@
+/* === Base Reset & Typography (Light Theme) === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+  line-height: 1.6;
+  padding: 20px;
+}
+a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+/* === Top Navigation Bar === */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #3b82f6;
+  padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.logo img {
+  width: 80px;
+  height: auto;
+  margin-right: 10px;
+}
+.logo span {
+  font-size: 1.5rem;
+  color: #ffffff;
+  font-weight: bold;
+}
+nav a {
+  margin: 0 10px;
+  color: #ffffff;
+  font-weight: bold;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+.header-buttons {
+  display: flex;
+  align-items: center;
+}
+.header-buttons button {
+  padding: 8px 12px;
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  margin-left: 10px;
+}
+.header-buttons button:hover {
+  background: #ffffff;
+  color: #3b82f6;
+}
+/* === Modern Button Styles === */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  margin: 5px 0;
+}
+.btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background: #2563eb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.btn-secondary {
+  background: transparent;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+}
+.btn-secondary:hover {
+  background: #3b82f6;
+  color: #ffffff;
+}
+/* === Modern Form Components === */
+form label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  display: block;
+}
+form input,
+form select,
+form textarea {
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 1rem;
+  width: 100%;
+}
+/* === Panels === */
+main {
+  margin-top: 90px;
+}
+.panel {
+  max-width: 800px;
+  margin: 20px auto;
+  background: #dbeafe;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.hidden {
+  display: none;
+}
+h1,
+h2 {
+  margin-bottom: 15px;
+  color: #3b82f6;
+}
+/* === Trending Topics === */
+#trending-topics {
+  margin: 15px 0;
+}
+#trending-topics span {
+  margin-right: 10px;
+  font-weight: bold;
+}
+#trending-topics .trending-btn {
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+/* === Quiz Styles === */
+.quiz-question {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #ffffff;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+}
+.quiz-question p {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.quiz-question label {
+  display: block;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+/* === Progress Bar for Gamification === */
+#progress-container {
+  background: #e0e7ff;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+#progress-bar {
+  height: 20px;
+  background: #3b82f6;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+/* === Results Panel === */
+#results-container .result-item {
+  background: #ffffff;
+  border: 1px solid #3b82f6;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+/* === Modal Styling (for API Key & Default Settings) === */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  display: none;
+}
+.modal-content {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.modal-content h2 {
+  margin-bottom: 15px;
+  color: #3b82f6;
+}
+.modal-content input[type='text'] {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #000000;
+}
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+}
+.modal-buttons button {
+  margin-left: 10px;
+}
+/* === Loading Overlay === */
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  display: none;
+}
+.spinner {
+  border: 6px solid #dbeafe;
+  border-top: 6px solid #3b82f6;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* === Custom Scrollbar === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #dbeafe;
+}
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+/* === Responsive === */
+@media (max-width: 768px) {
+  .header-buttons button {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+  .logo span {
+    font-size: 1.3rem;
+  }
+  .panel {
+    margin: 15px;
+    padding: 15px;
+  }
+}
+@media (max-width: 480px) {
+  header .logo img {
+    width: 65px;
+  }
+}
+
+/* === Hamburger Menu Styling === */
+.hamburger {
+  display: none; /* Hidden by default on larger screens */
+  flex-direction: column;
+  cursor: pointer;
+}
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: #ffffff;
+  margin: 4px 0;
+  transition: 0.4s;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+  nav {
+    display: none; /* Hide nav by default */
+    flex-direction: column;
+    background: #3b82f6;
+    width: 100%;
+  }
+  nav.active {
+    display: flex; /* Show when active */
+  }
+  .hamburger {
+    display: flex; /* Show hamburger icon */
+  }
+  header {
+    flex-wrap: wrap;
+  }
+}

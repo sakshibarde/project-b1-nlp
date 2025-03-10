@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExamAI - Results</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <header>
+      <div class="logo" id="logo">
+        <img src="/assets/ask-pce.png" alt="Logo" />
+        <span>ExamAI</span>
+      </div>
+      <!-- Hamburger icon for small screens -->
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav-menu">
+        <a href="index.html" id="nav-home">Home</a>
+        <a href="notes.html" id="nav-notes">Notes</a>
+        <a href="quiz-settings.html" id="nav-quiz">Quiz</a>
+        <a href="analysis.html" id="nav-analysis">Analysis</a>
+        <a href="settings.html" id="nav-settings">Settings</a>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <div class="panel">
+        <h2>Results</h2>
+        <div id="results-container"></div>
+        <div>
+          <button id="analysis-btn" class="btn btn-secondary">
+            Analyse Performance
+          </button>
+        </div>
+        <button id="results-back-btn" class="btn btn-primary">
+          Back to Home
+        </button>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span>
+        <a href="https://drasticcoder.in" target="_blank">DrasticCoder</a>
+      </p>
+    </footer>
+
+    <script>
+      document.getElementById('current-year').textContent =
+        new Date().getFullYear();
+
+      // Retrieve quiz results from localStorage
+      const quizResults = JSON.parse(
+        localStorage.getItem('quizResults') || '{}',
+      );
+      const container = document.getElementById('results-container');
+
+      if (!quizResults || Object.keys(quizResults).length === 0) {
+        container.innerHTML = '<p>No results available.</p>';
+      } else {
+        if (quizResults.type === 'interactive') {
+          container.innerHTML = `<p>${
+            quizResults.feedback || 'Interactive game result.'
+          }</p>`;
+        } else {
+          let html = `<p><strong>Your Score:</strong> ${quizResults.score} out of ${quizResults.total}</p>`;
+          quizResults.details.forEach((item, index) => {
+            const userAnsText =
+              item.options &&
+              item.userAnswer !== null &&
+              item.options[item.userAnswer] !== undefined
+                ? item.options[item.userAnswer]
+                : 'No answer';
+            const correctAnsText =
+              item.options &&
+              item.correctAnswer !== null &&
+              item.options[item.correctAnswer] !== undefined
+                ? item.options[item.correctAnswer]
+                : 'Not provided';
+            html += `<div class="result-item">
+              <p><strong>Question ${index + 1}:</strong> ${item.question}</p>`;
+            if (item.options.length) {
+              html += `<p><strong>Options:</strong> ${item.options.join(
+                ', ',
+              )}</p>`;
+            }
+            html += `<p><strong>Your Answer:</strong> ${userAnsText}</p>
+              <p><strong>Correct Answer:</strong> ${correctAnsText}</p>
+              <p><strong>Explanation:</strong> ${item.explanation}</p>
+            </div>`;
+          });
+          container.innerHTML = html;
+        }
+      }
+
+      // Save this test result in test history
+      const testHistory = JSON.parse(
+        localStorage.getItem('testHistory') || '[]',
+      );
+      testHistory.push({ date: new Date().toISOString(), result: quizResults });
+      localStorage.setItem('testHistory', JSON.stringify(testHistory));
+
+      // Analyse Performance button: ensure redirection works
+      document.getElementById('analysis-btn').addEventListener('click', () => {
+        window.location.href = 'analysis.html';
+      });
+
+      // Back to Home button
+      document
+        .getElementById('results-back-btn')
+        .addEventListener('click', () => {
+          window.location.href = 'index.html';
+        });
+
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+      });
+    </script>
+  </body>
+</html>
