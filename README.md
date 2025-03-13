@@ -58,6 +58,7 @@ For detailed instructions on creating Gemini API keys, efficiently using this pl
   * Tushar Deshmukh
   * Vinayak Balachandran
   * Vineet Iyer
+  * Deeksha Gawas
 - **Inspiration:** Special thanks to **Dhiraj Amin Sir** for inspiring the idea behind this platform.
 - **Additional Resources:**  
   Learn more about Google's AI offerings at the [Google AI Developer Site](https://ai.google.dev/).
