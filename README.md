@@ -69,6 +69,7 @@ For detailed instructions on creating Gemini API keys, efficiently using this pl
   * Satyajeet Desai
   * Tejas Chaudhari
   * Mitesh Chaudhari
+  * Sakshi Barde
 
 - **Inspiration:** Special thanks to **Dhiraj Amin Sir** for inspiring the idea behind this platform.
 - **Additional Resources:**  
